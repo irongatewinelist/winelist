@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Wine List</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#1a1a1a">
+</head>
+<body>
+
+  <!-- Search bar -->
+  <div id="search-bar">
+    <input type="text" id="search-input" placeholder="Search wines..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button id="search-clear" aria-label="Clear search">&times;</button>
+  </div>
+
+  <!-- Main wine list -->
+  <main id="wine-list">
+    <p class="loading">Loading wine list...</p>
+  </main>
+
+  <!-- Right-side vertical section nav -->
+  <nav id="section-nav"></nav>
+
+  <!-- Footer -->
+  <footer>
+    <span id="last-updated"></span>
+  </footer>
+
+  <!-- Inactivity reset overlay -->
+  <div id="reset-overlay">
+    <div class="overlay-content">
+      <div class="overlay-line"></div>
+      <h2>Wine List</h2>
+      <p>Touch to browse</p>
+      <div class="overlay-line"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
