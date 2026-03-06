@@ -1,7 +1,8 @@
-var CACHE_NAME = 'winelist-v1';
+var CACHE_NAME = 'winelist-cache';
 var ASSETS = ['./', './index.html', './styles.css', './app.js', './manifest.json'];
 
 self.addEventListener('install', function (event) {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
       return cache.addAll(ASSETS);
@@ -10,6 +11,7 @@ self.addEventListener('install', function (event) {
 });
 
 self.addEventListener('activate', function (event) {
+  self.clients.claim();
   event.waitUntil(
     caches.keys().then(function (names) {
       return Promise.all(
