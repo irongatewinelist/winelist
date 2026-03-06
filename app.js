@@ -1,6 +1,6 @@
 // =============================================
 // REPLACE THIS URL WITH YOUR GOOGLE SHEET CSV URL
-var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR-SHEET-ID-HERE/pub?gid=0&single=true&output=csv';
+var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRixa3FH6Hy9NBz9YDTuXATcR7ayFDRPx-ipT_TkOgrbaD-p59Kg9fcYgnV7uDxQc-cD8uaEx3Gnu2v/pub?output=csv';
 // =============================================
 
 var REFRESH_INTERVAL = 3 * 60 * 1000;
