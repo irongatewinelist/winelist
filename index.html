@@ -12,19 +12,27 @@
 </head>
 <body>
 
-  <!-- Search bar -->
-  <div id="search-bar">
-    <input type="text" id="search-input" placeholder="Search wines..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <button id="search-clear" aria-label="Clear search">&times;</button>
+  <!-- Header with title + search -->
+  <div id="header">
+    <h1>Wine List</h1>
+    <div id="search-wrap">
+      <input type="text" id="search-input" placeholder="Search wines..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <button id="search-clear" aria-label="Clear search">&times;</button>
+    </div>
   </div>
 
-  <!-- Main wine list -->
+  <!-- Right sidebar nav -->
+  <nav id="section-nav">
+    <div id="nav-spacer"></div>
+    <div id="nav-items">
+      <div id="nav-items-inner"></div>
+    </div>
+  </nav>
+
+  <!-- Wine list content -->
   <main id="wine-list">
     <p class="loading">Loading wine list...</p>
   </main>
-
-  <!-- Right-side vertical section nav -->
-  <nav id="section-nav"></nav>
 
   <!-- Footer -->
   <footer>

@@ -1,10 +1,10 @@
 // =============================================
 // REPLACE THIS URL WITH YOUR GOOGLE SHEET CSV URL
-var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRixa3FH6Hy9NBz9YDTuXATcR7ayFDRPx-ipT_TkOgrbaD-p59Kg9fcYgnV7uDxQc-cD8uaEx3Gnu2v/pub?output=csv';
+var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/YOUR-SHEET-ID-HERE/pub?gid=0&single=true&output=csv';
 // =============================================
 
-var REFRESH_INTERVAL = 3 * 60 * 1000;   // Refresh data every 3 minutes
-var INACTIVITY_TIMEOUT = 2 * 60 * 1000; // Reset to top after 2 min inactivity
+var REFRESH_INTERVAL = 3 * 60 * 1000;
+var INACTIVITY_TIMEOUT = 2 * 60 * 1000;
 var CACHE_KEY = 'winelist-data';
 var CURRENCY = '$';
 
@@ -65,7 +65,7 @@ function fetchWines(callback) {
       var wines = parseCSV(xhr.responseText);
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ wines: wines, timestamp: Date.now() }));
-      } catch (e) { /* storage full or unavailable */ }
+      } catch (e) { }
       callback(wines);
     } else {
       callback(loadFromCache());
@@ -92,15 +92,14 @@ function loadFromCache() {
 
 function renderWineList(wines) {
   var main = document.getElementById('wine-list');
-  var nav = document.getElementById('section-nav');
+  var navInner = document.getElementById('nav-items-inner');
 
   if (!wines || wines.length === 0) {
     main.innerHTML = '<p class="error">No wines available. Please check the spreadsheet.</p>';
-    nav.innerHTML = '';
+    navInner.innerHTML = '';
     return;
   }
 
-  // Filter to only visible wines (status = yes)
   var available = [];
   for (var i = 0; i < wines.length; i++) {
     if ((wines[i]['Status'] || '').toLowerCase() === 'yes') {
@@ -110,7 +109,6 @@ function renderWineList(wines) {
 
   allWines = available;
 
-  // Group by section, preserving spreadsheet order
   sections = [];
   sectionMap = {};
   for (var i = 0; i < available.length; i++) {
@@ -122,10 +120,8 @@ function renderWineList(wines) {
     sectionMap[section].push(available[i]);
   }
 
-  // Build nav
   buildNav(sections);
 
-  // Build wine list
   var html = '';
   for (var s = 0; s < sections.length; s++) {
     var section = sections[s];
@@ -133,14 +129,12 @@ function renderWineList(wines) {
     html += '<div class="section-block" id="section-' + slugify(section) + '">';
     html += '<h2 class="section-title">' + escapeHTML(section) + '</h2>';
 
-    // Check if this section has sub-sections
     var hasSubSections = false;
     for (var w = 0; w < sectionWines.length; w++) {
       if (sectionWines[w]['Sub-Section']) { hasSubSections = true; break; }
     }
 
     if (hasSubSections) {
-      // Group by sub-section, preserving order
       var subSections = [];
       var subMap = {};
       for (var w = 0; w < sectionWines.length; w++) {
@@ -168,6 +162,8 @@ function renderWineList(wines) {
 
   main.innerHTML = html;
   updateTimestamp();
+  syncNavSpacer();
+  highlightActiveSection();
 }
 
 function renderWineRow(wine) {
@@ -195,7 +191,7 @@ function renderWineRow(wine) {
     priceHTML += '<div class="price-group"><span class="price-value">' + CURRENCY + formatPrice(bottle) + '</span><span class="price-label">bottle</span></div>';
   }
 
-  var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '" data-section="' + escapeAttr((wine['Section'] || '').toLowerCase()) + '">';
+  var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '">';
   html += '<div class="wine-info">';
   html += '<div class="wine-name">' + escapeHTML(name) + '</div>';
   if (detailStr) html += '<div class="wine-details">' + escapeHTML(detailStr) + '</div>';
@@ -215,56 +211,49 @@ function formatPrice(price) {
 // ---- Navigation ----
 
 function buildNav(sections) {
-  var nav = document.getElementById('section-nav');
-  nav.innerHTML = '';
-
-  // Toggle button
-  var toggle = document.createElement('button');
-  toggle.id = 'nav-toggle';
-  toggle.innerHTML = '<span class="toggle-arrow">\u25C0</span>';
-  toggle.addEventListener('click', function (e) {
-    e.stopPropagation();
-    nav.classList.toggle('expanded');
-  });
-  nav.appendChild(toggle);
-
-  // Close nav when tapping outside
-  document.addEventListener('click', function (e) {
-    if (!nav.contains(e.target) && nav.classList.contains('expanded')) {
-      nav.classList.remove('expanded');
-    }
-  });
+  var navInner = document.getElementById('nav-items-inner');
+  navInner.innerHTML = '';
 
   for (var i = 0; i < sections.length; i++) {
     var section = sections[i];
     var btn = document.createElement('button');
-    btn.className = 'nav-btn';
-    btn.setAttribute('data-section', slugify(section));
-
-    var dot = document.createElement('span');
-    dot.className = 'nav-dot';
-
-    var label = document.createElement('span');
-    label.className = 'nav-label';
-    label.textContent = section;
-
-    btn.appendChild(dot);
-    btn.appendChild(label);
-
-    btn.addEventListener('click', (function (sec) {
-      return function () {
-        var el = document.getElementById('section-' + slugify(sec));
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-        nav.classList.remove('expanded');
-      };
-    })(section));
-    nav.appendChild(btn);
+    btn.className = 'nav-item';
+    btn.textContent = section;
+    btn.setAttribute('data-target', slugify(section));
+    btn.addEventListener('click', function () {
+      var el = document.getElementById('section-' + this.getAttribute('data-target'));
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    navInner.appendChild(btn);
   }
+}
 
-  // Highlight active section on scroll
-  setupScrollSpy();
+// ---- Nav spacer sync ----
+
+function syncNavSpacer() {
+  var header = document.getElementById('header');
+  var spacer = document.getElementById('nav-spacer');
+  var h = header.offsetHeight;
+  spacer.style.height = h + 'px';
+}
+
+// ---- Scroll spy ----
+
+function highlightActiveSection() {
+  var blocks = document.querySelectorAll('.section-block');
+  var scrollPos = window.scrollY + 180;
+  var activeSlug = '';
+  for (var i = 0; i < blocks.length; i++) {
+    if (blocks[i].offsetTop <= scrollPos) activeSlug = blocks[i].id.replace('section-', '');
+  }
+  if (!activeSlug && blocks.length > 0) {
+    activeSlug = blocks[0].id.replace('section-', '');
+  }
+  var btns = document.querySelectorAll('.nav-item');
+  for (var i = 0; i < btns.length; i++) {
+    if (btns[i].getAttribute('data-target') === activeSlug) btns[i].classList.add('active');
+    else btns[i].classList.remove('active');
+  }
 }
 
 function setupScrollSpy() {
@@ -278,27 +267,6 @@ function setupScrollSpy() {
       ticking = true;
     }
   });
-}
-
-function highlightActiveSection() {
-  var blocks = document.querySelectorAll('.section-block');
-  var navButtons = document.querySelectorAll('#section-nav .nav-btn');
-  var scrollPos = window.scrollY + 120;
-  var activeId = '';
-
-  for (var i = 0; i < blocks.length; i++) {
-    if (blocks[i].offsetTop <= scrollPos) {
-      activeId = blocks[i].id;
-    }
-  }
-
-  for (var i = 0; i < navButtons.length; i++) {
-    if ('section-' + navButtons[i].getAttribute('data-section') === activeId) {
-      navButtons[i].classList.add('active');
-    } else {
-      navButtons[i].classList.remove('active');
-    }
-  }
 }
 
 // ---- Search ----
@@ -329,7 +297,6 @@ function filterWines(query) {
   if (noResults) noResults.remove();
 
   if (!query) {
-    // Show everything
     for (var i = 0; i < rows.length; i++) {
       rows[i].classList.remove('search-hidden', 'search-match');
     }
@@ -344,7 +311,6 @@ function filterWines(query) {
 
   var anyMatch = false;
 
-  // Hide/show wine rows
   for (var i = 0; i < rows.length; i++) {
     var name = rows[i].getAttribute('data-name') || '';
     if (name.indexOf(query) !== -1) {
@@ -357,7 +323,6 @@ function filterWines(query) {
     }
   }
 
-  // Hide sections with no visible wines
   for (var i = 0; i < sectionBlocks.length; i++) {
     var visibleWines = sectionBlocks[i].querySelectorAll('.wine-row:not(.search-hidden)');
     if (visibleWines.length === 0) {
@@ -367,7 +332,6 @@ function filterWines(query) {
     }
   }
 
-  // Hide sub-section headers with no visible wines after them
   for (var i = 0; i < subHeaders.length; i++) {
     var nextEl = subHeaders[i].nextElementSibling;
     var hasVisible = false;
@@ -401,25 +365,20 @@ function resetInactivityTimer() {
   overlay.classList.remove('visible');
 
   inactivityTimer = setTimeout(function () {
-    // Clear search
     var input = document.getElementById('search-input');
     input.value = '';
     document.getElementById('search-clear').classList.remove('visible');
     filterWines('');
 
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Remove active nav states and collapse nav
-    var navButtons = document.querySelectorAll('#section-nav .nav-btn');
+    var navButtons = document.querySelectorAll('.nav-item');
     for (var i = 0; i < navButtons.length; i++) {
       navButtons[i].classList.remove('active');
     }
-    document.getElementById('section-nav').classList.remove('expanded');
 
-    // Show overlay
     setTimeout(function () {
-      overlay.classList.add('visible');
+      document.getElementById('reset-overlay').classList.add('visible');
     }, 400);
   }, INACTIVITY_TIMEOUT);
 }
@@ -471,15 +430,15 @@ function escapeAttr(str) {
 // ---- Service Worker Registration ----
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(function (err) {
-    // SW registration failed — site still works, just no offline caching
-  });
+  navigator.serviceWorker.register('./sw.js').catch(function (err) { });
 }
 
 // ---- Init ----
 
 function init() {
   setupSearch();
+  syncNavSpacer();
+  window.addEventListener('resize', syncNavSpacer);
 
   fetchWines(function (wines) {
     if (wines) {
@@ -490,13 +449,13 @@ function init() {
     }
   });
 
-  // Auto-refresh
   setInterval(function () {
     fetchWines(function (wines) {
       if (wines) renderWineList(wines);
     });
   }, REFRESH_INTERVAL);
 
+  setupScrollSpy();
   setupInactivity();
 }
 

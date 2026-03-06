@@ -6,15 +6,16 @@
 :root {
   --bg: #1a1a1a;
   --bg-subtle: #222222;
+  --bg-elevated: #2a2a2a;
   --gold: #c9a96e;
   --gold-dim: #a08450;
+  --gold-glow: rgba(201, 169, 110, 0.12);
   --text: #e8e0d4;
   --text-muted: #888888;
   --text-dim: #555555;
   --border: #333333;
   --border-light: #2a2a2a;
-  --red-dim: #442222;
-  --nav-width: 32px;
+  --nav-width: 200px;
 }
 
 * {
@@ -39,33 +40,47 @@ body {
 }
 
 /* ============================================
-   SEARCH BAR
+   HEADER — TITLE + SEARCH (sticky)
    ============================================ */
 
-#search-bar {
+#header {
   position: sticky;
   top: 0;
   z-index: 20;
   background: var(--bg);
-  padding: 16px 20px;
-  padding-right: calc(var(--nav-width) + 20px);
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  text-align: center;
+  padding: 24px 24px 16px;
+  padding-right: calc(var(--nav-width) + 24px);
+}
+
+#header h1 {
+  font-size: 1.4em;
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+#search-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 500px;
 }
 
 #search-input {
-  flex: 1;
+  width: 100%;
   background: var(--bg-subtle);
   border: 1px solid var(--border);
   color: var(--text);
   font-family: Georgia, 'Times New Roman', Times, serif;
-  font-size: 1em;
-  padding: 12px 16px;
+  font-size: 0.95em;
+  padding: 10px 40px 10px 16px;
   border-radius: 3px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.3s;
 }
 
 #search-input:focus {
@@ -78,10 +93,14 @@ body {
 }
 
 #search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 1.5em;
+  font-size: 1.4em;
   cursor: pointer;
   padding: 4px 8px;
   line-height: 1;
@@ -93,13 +112,83 @@ body {
 }
 
 /* ============================================
+   RIGHT SIDEBAR NAV
+   ============================================ */
+
+#section-nav {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--nav-width);
+  background: var(--bg-subtle);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 15;
+  overflow: hidden;
+}
+
+/* Spacer that matches the header height */
+#nav-spacer {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-subtle);
+}
+
+#nav-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#nav-items::-webkit-scrollbar {
+  display: none;
+}
+
+/* Centers items when they don't fill the space, scrolls from top when they do */
+#nav-items-inner {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#section-nav .nav-item {
+  background: none;
+  border: none;
+  color: #999999;
+  cursor: pointer;
+  padding: 8px 16px;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-size: 0.78em;
+  text-align: left;
+  width: 100%;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  flex-shrink: 0;
+}
+
+#section-nav .nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+#section-nav .nav-item.active {
+  color: var(--gold);
+  border-left-color: var(--gold);
+  background: var(--gold-glow);
+}
+
+/* ============================================
    MAIN CONTENT
    ============================================ */
 
 main {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 10px 24px 80px;
+  padding: 0 24px 100px;
   padding-right: calc(var(--nav-width) + 24px);
 }
 
@@ -123,7 +212,7 @@ main {
    ============================================ */
 
 .section-block {
-  margin-bottom: 12px;
+  scroll-margin-top: 120px;
 }
 
 .section-title {
@@ -138,7 +227,7 @@ main {
 }
 
 .section-block:first-child .section-title {
-  padding-top: 20px;
+  padding-top: 16px;
 }
 
 /* ============================================
@@ -252,134 +341,6 @@ main {
 }
 
 /* ============================================
-   RIGHT-SIDE VERTICAL NAVIGATION — EXPANDABLE
-   ============================================ */
-
-#section-nav {
-  position: fixed;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--nav-width);
-  background: var(--bg-subtle);
-  border-left: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: stretch;
-  padding: 8px 0;
-  z-index: 15;
-  overflow-y: auto;
-  overflow-x: hidden;
-  gap: 0;
-  transition: width 0.25s ease;
-}
-
-#section-nav.expanded {
-  width: auto;
-  min-width: 180px;
-  max-width: 280px;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
-}
-
-/* Hide scrollbar but allow scrolling */
-#section-nav::-webkit-scrollbar {
-  display: none;
-}
-#section-nav {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Toggle tab at top of nav */
-#nav-toggle {
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  color: var(--gold);
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  font-size: 0.75em;
-  cursor: pointer;
-  padding: 10px 6px;
-  text-align: center;
-  letter-spacing: 0.1em;
-  flex-shrink: 0;
-}
-
-#nav-toggle .toggle-arrow {
-  display: inline-block;
-  transition: transform 0.25s ease;
-}
-
-#section-nav.expanded #nav-toggle .toggle-arrow {
-  transform: rotate(180deg);
-}
-
-/* Collapsed: show dots */
-#section-nav button.nav-btn {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  cursor: pointer;
-  padding: 5px 6px;
-  text-align: left;
-  line-height: 1.2;
-  transition: color 0.2s, background 0.2s;
-  border-radius: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-/* The dot indicator */
-.nav-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  flex-shrink: 0;
-  transition: background 0.2s, transform 0.2s;
-  margin: 0 auto;
-}
-
-/* The label — hidden when collapsed */
-.nav-label {
-  font-size: 0.78em;
-  display: none;
-  letter-spacing: 0.02em;
-}
-
-#section-nav.expanded .nav-label {
-  display: inline;
-}
-
-#section-nav.expanded .nav-dot {
-  margin: 0;
-}
-
-#section-nav button.nav-btn:hover {
-  color: var(--gold);
-  background: rgba(201, 169, 110, 0.08);
-}
-
-#section-nav button.nav-btn:hover .nav-dot {
-  background: var(--gold);
-}
-
-#section-nav button.nav-btn.active {
-  color: var(--gold);
-}
-
-#section-nav button.nav-btn.active .nav-dot {
-  background: var(--gold);
-  transform: scale(1.4);
-}
-
-/* ============================================
    FOOTER
    ============================================ */
 
@@ -430,21 +391,4 @@ footer {
   height: 1px;
   background: var(--gold-dim);
   margin: 20px auto;
-}
-
-/* ============================================
-   SCROLLBAR (webkit browsers)
-   ============================================ */
-
-main::-webkit-scrollbar {
-  width: 4px;
-}
-
-main::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-
-main::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 2px;
 }
