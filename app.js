@@ -192,7 +192,11 @@ function renderWineRow(wine) {
     priceHTML += '<div class="price-group"><span class="price-value">' + CURRENCY + formatPrice(bottle) + '</span><span class="price-label">bottle</span></div>';
   }
 
-  var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '">';
+  var section = wine['Section'] || '';
+  var subSection = wine['Sub-Section'] || '';
+  var searchText = [name, section, subSection, description].join(' ').toLowerCase();
+
+  var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '" data-search="' + escapeAttr(searchText) + '">';
   html += '<div class="wine-info">';
   html += '<div class="wine-name">' + escapeHTML(name) + '</div>';
   if (detailStr) html += '<div class="wine-details">' + escapeHTML(detailStr) + '</div>';
@@ -313,8 +317,8 @@ function filterWines(query) {
   var anyMatch = false;
 
   for (var i = 0; i < rows.length; i++) {
-    var name = rows[i].getAttribute('data-name') || '';
-    if (name.indexOf(query) !== -1) {
+    var searchText = rows[i].getAttribute('data-search') || rows[i].getAttribute('data-name') || '';
+    if (searchText.indexOf(query) !== -1) {
       rows[i].classList.remove('search-hidden');
       rows[i].classList.add('search-match');
       anyMatch = true;
