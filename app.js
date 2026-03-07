@@ -4,11 +4,12 @@ var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRixa3FH6Hy
 // =============================================
 
 var REFRESH_INTERVAL = 3 * 60 * 1000;
-var INACTIVITY_TIMEOUT = 2 * 60 * 1000;
+var INACTIVITY_TIMEOUT = 8 * 60 * 1000;
 var CACHE_KEY = 'winelist-data';
 var CURRENCY = '$';
 
 var inactivityTimer;
+var resetting = false;
 var allWines = [];
 var sections = [];
 var sectionMap = {};
@@ -365,12 +366,14 @@ function resetInactivityTimer() {
   overlay.classList.remove('visible');
 
   inactivityTimer = setTimeout(function () {
+    resetting = true;
+
     var input = document.getElementById('search-input');
     input.value = '';
     document.getElementById('search-clear').classList.remove('visible');
     filterWines('');
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
 
     var navButtons = document.querySelectorAll('.nav-item');
     for (var i = 0; i < navButtons.length; i++) {
@@ -379,7 +382,7 @@ function resetInactivityTimer() {
 
     setTimeout(function () {
       document.getElementById('reset-overlay').classList.add('visible');
-    }, 400);
+    }, 100);
   }, INACTIVITY_TIMEOUT);
 }
 
@@ -387,12 +390,21 @@ function setupInactivity() {
   var overlay = document.getElementById('reset-overlay');
   overlay.addEventListener('click', function () {
     overlay.classList.remove('visible');
+    resetting = false;
+    resetInactivityTimer();
+  });
+  overlay.addEventListener('touchstart', function () {
+    overlay.classList.remove('visible');
+    resetting = false;
     resetInactivityTimer();
   });
 
   var events = ['touchstart', 'click', 'scroll'];
   for (var i = 0; i < events.length; i++) {
-    document.addEventListener(events[i], resetInactivityTimer);
+    document.addEventListener(events[i], function () {
+      if (resetting) return;
+      resetInactivityTimer();
+    });
   }
   resetInactivityTimer();
 }
