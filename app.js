@@ -194,7 +194,8 @@ function renderWineRow(wine) {
 
   var section = wine['Section'] || '';
   var subSection = wine['Sub-Section'] || '';
-  var searchText = [name, section, subSection, description].join(' ').toLowerCase();
+  var bin = wine['Bin No.'] || '';
+  var searchText = [name, section, subSection, description, vintage, bin].join(' ').toLowerCase();
 
   var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '" data-search="' + escapeAttr(searchText) + '">';
   html += '<div class="wine-info">';
@@ -318,7 +319,15 @@ function filterWines(query) {
 
   for (var i = 0; i < rows.length; i++) {
     var searchText = rows[i].getAttribute('data-search') || rows[i].getAttribute('data-name') || '';
-    if (searchText.indexOf(query) !== -1) {
+    var terms = query.split(/\s+/);
+    var allMatch = true;
+    for (var t = 0; t < terms.length; t++) {
+      if (terms[t] && searchText.indexOf(terms[t]) === -1) {
+        allMatch = false;
+        break;
+      }
+    }
+    if (allMatch) {
       rows[i].classList.remove('search-hidden');
       rows[i].classList.add('search-match');
       anyMatch = true;
@@ -467,7 +476,11 @@ function init() {
 
   setInterval(function () {
     fetchWines(function (wines) {
-      if (wines) renderWineList(wines);
+      if (wines) {
+        renderWineList(wines);
+        var currentQuery = document.getElementById('search-input').value.trim().toLowerCase();
+        if (currentQuery) filterWines(currentQuery);
+      }
     });
   }, REFRESH_INTERVAL);
 
