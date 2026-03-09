@@ -9,6 +9,7 @@ var CACHE_KEY = 'winelist-data';
 var CURRENCY = '$';
 
 var inactivityTimer;
+var refreshIntervalId;
 var resetting = false;
 var allWines = [];
 var sections = [];
@@ -194,8 +195,8 @@ function renderWineRow(wine) {
 
   var section = wine['Section'] || '';
   var subSection = wine['Sub-Section'] || '';
-  var bin = wine['Bin No.'] || '';
-  var searchText = [name, section, subSection, description, vintage, bin].join(' ').toLowerCase();
+  var binNo = wine['Bin No.'] || '';
+  var searchText = [name, section, subSection, description, vintage, binNo].join(' ').toLowerCase();
 
   var html = '<div class="wine-row" data-name="' + escapeAttr(name.toLowerCase()) + '" data-search="' + escapeAttr(searchText) + '">';
   html += '<div class="wine-info">';
@@ -247,7 +248,7 @@ function syncNavSpacer() {
 
 function highlightActiveSection() {
   var blocks = document.querySelectorAll('.section-block');
-  var scrollPos = window.scrollY + 180;
+  var scrollPos = window.scrollY + document.getElementById('header').offsetHeight + 10;
   var activeSlug = '';
   for (var i = 0; i < blocks.length; i++) {
     if (blocks[i].offsetTop <= scrollPos) activeSlug = blocks[i].id.replace('section-', '');
@@ -380,6 +381,7 @@ function resetInactivityTimer() {
 
   inactivityTimer = setTimeout(function () {
     resetting = true;
+    clearInterval(refreshIntervalId);
 
     var input = document.getElementById('search-input');
     input.value = '';
@@ -405,11 +407,19 @@ function setupInactivity() {
     overlay.classList.remove('visible');
     resetting = false;
     resetInactivityTimer();
+    startRefreshInterval();
+    fetchWines(function (wines) {
+      if (wines) renderWineList(wines);
+    });
   });
   overlay.addEventListener('touchstart', function () {
     overlay.classList.remove('visible');
     resetting = false;
     resetInactivityTimer();
+    startRefreshInterval();
+    fetchWines(function (wines) {
+      if (wines) renderWineList(wines);
+    });
   });
 
   var events = ['touchstart', 'click', 'scroll'];
@@ -458,6 +468,21 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(function (err) { });
 }
 
+// ---- Refresh Interval ----
+
+function startRefreshInterval() {
+  clearInterval(refreshIntervalId);
+  refreshIntervalId = setInterval(function () {
+    fetchWines(function (wines) {
+      if (wines) {
+        renderWineList(wines);
+        var currentQuery = document.getElementById('search-input').value.trim().toLowerCase();
+        if (currentQuery) filterWines(currentQuery);
+      }
+    });
+  }, REFRESH_INTERVAL);
+}
+
 // ---- Init ----
 
 function init() {
@@ -474,15 +499,7 @@ function init() {
     }
   });
 
-  setInterval(function () {
-    fetchWines(function (wines) {
-      if (wines) {
-        renderWineList(wines);
-        var currentQuery = document.getElementById('search-input').value.trim().toLowerCase();
-        if (currentQuery) filterWines(currentQuery);
-      }
-    });
-  }, REFRESH_INTERVAL);
+  startRefreshInterval();
 
   setupScrollSpy();
   setupInactivity();
