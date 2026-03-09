@@ -6,6 +6,7 @@ var SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRixa3FH6Hy
 var REFRESH_INTERVAL = 3 * 60 * 1000;
 var INACTIVITY_TIMEOUT = 8 * 60 * 1000;
 var CACHE_KEY = 'winelist-data';
+var CACHE_MAX_AGE = 18 * 60 * 60 * 1000;
 var CURRENCY = '$';
 
 var inactivityTimer;
@@ -72,12 +73,15 @@ function fetchWines(callback) {
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ wines: wines, timestamp: Date.now() }));
       } catch (e) { }
+      updateStaleBanner(false);
       callback(wines);
     } else {
+      updateStaleBanner(true);
       callback(loadFromCache());
     }
   };
   xhr.onerror = function () {
+    updateStaleBanner(true);
     callback(loadFromCache());
   };
   xhr.send();
@@ -451,8 +455,39 @@ function updateTimestamp() {
     var cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       var data = JSON.parse(cached);
-      var date = new Date(data.timestamp);
-      el.textContent = 'Last updated: ' + date.toLocaleString();
+      var age = Date.now() - data.timestamp;
+      el.textContent = 'Last updated: ' + formatAge(age);
+    }
+  } catch (e) { }
+}
+
+function formatAge(ms) {
+  var seconds = Math.floor(ms / 1000);
+  if (seconds < 60) return 'just now';
+  var minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + (minutes === 1 ? ' minute ago' : ' minutes ago');
+  var hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
+  var days = Math.floor(hours / 24);
+  return days + (days === 1 ? ' day ago' : ' days ago');
+}
+
+function updateStaleBanner(fromCache) {
+  var banner = document.getElementById('stale-banner');
+  if (!banner) return;
+  if (!fromCache) {
+    banner.classList.add('hidden');
+    return;
+  }
+  try {
+    var cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      var data = JSON.parse(cached);
+      var age = Date.now() - data.timestamp;
+      if (age > CACHE_MAX_AGE) {
+        banner.textContent = 'Wine list may be outdated \u2014 last synced ' + formatAge(age);
+        banner.classList.remove('hidden');
+      }
     }
   } catch (e) { }
 }
