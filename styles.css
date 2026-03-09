@@ -195,7 +195,7 @@ main {
 .loading {
   text-align: center;
   padding: 80px 20px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-style: italic;
   font-size: 1.1em;
 }
@@ -308,7 +308,7 @@ main {
 
 .price-label {
   font-size: 0.68em;
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: block;
@@ -335,7 +335,7 @@ main {
 .no-results {
   text-align: center;
   padding: 60px 20px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-style: italic;
   font-size: 1.05em;
 }
