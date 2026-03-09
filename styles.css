@@ -410,3 +410,16 @@ footer {
   background: var(--gold-dim);
   margin: 20px auto;
 }
+
+/* ============================================
+   RESPONSIVE — PHONE / SMALL SCREENS
+   ============================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --nav-width: 0px;
+  }
+  #section-nav {
+    display: none;
+  }
+}
