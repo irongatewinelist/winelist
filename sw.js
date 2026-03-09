@@ -24,16 +24,19 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   event.respondWith(
-    fetch(event.request)
-      .then(function (response) {
+    Promise.race([
+      fetch(event.request).then(function (response) {
         var clone = response.clone();
         caches.open(CACHE_NAME).then(function (cache) {
           cache.put(event.request, clone);
         });
         return response;
+      }),
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error('timeout')); }, 7000);
       })
-      .catch(function () {
-        return caches.match(event.request);
-      })
+    ]).catch(function () {
+      return caches.match(event.request);
+    })
   );
 });
