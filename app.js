@@ -214,7 +214,17 @@ function renderWineRow(wine) {
   html += '<div class="wine-info">';
   html += '<div class="wine-name">' + escapeHTML(name) + '</div>';
   if (detailStr) html += '<div class="wine-details">' + escapeHTML(detailStr) + '</div>';
-  if (description) html += '<div class="wine-description">' + escapeHTML(description) + '</div>';
+  var isFlight = section.toLowerCase().indexOf('flight') !== -1;
+  if (description && isFlight) {
+    var items = description.split(',');
+    html += '<div class="flight-items">';
+    for (var i = 0; i < items.length; i++) {
+      html += '<div class="flight-item">' + escapeHTML(items[i].trim()) + '</div>';
+    }
+    html += '</div>';
+  } else if (description) {
+    html += '<div class="wine-description">' + escapeHTML(description) + '</div>';
+  }
   html += '</div>';
   if (priceHTML) html += '<div class="wine-prices">' + priceHTML + '</div>';
   html += '</div>';

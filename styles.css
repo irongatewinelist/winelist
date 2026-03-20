@@ -314,6 +314,19 @@ main {
   margin-top: 1px;
 }
 
+/* Flight items (nested wines in a flight) */
+.flight-items {
+  margin-top: 8px;
+  padding-left: 14px;
+  border-left: 2px solid var(--gold-dim);
+}
+
+.flight-item {
+  font-size: 0.94em;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
 /* Search highlight */
 .wine-row.search-match .wine-name {
   color: var(--gold);
