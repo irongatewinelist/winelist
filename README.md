@@ -2,6 +2,10 @@
 
 A Progressive Web App (PWA) for displaying a searchable wine list on tablets. Pulls data from a Google Sheet and auto-refreshes every 3 minutes. Includes an inactivity reset overlay for unattended kiosk use.
 
+
+## Url
+https://irongatewinelist.github.io/winelist/
+
 ## Configuration
 
 Edit the constants at the top of `app.js`:
